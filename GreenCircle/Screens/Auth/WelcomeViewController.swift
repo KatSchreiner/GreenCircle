@@ -61,7 +61,7 @@ final class WelcomeViewController: UIViewController {
         let label = UILabel()
         label.text = "Давайте создадим аккаунт — это займёт минуту"
         label.font = UIFont.systemFont(ofSize: 14, weight: .regular)
-        label.numberOfLines = 1
+        label.numberOfLines = 2
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = .center
         label.textColor = Constants.colorSecondary
@@ -74,7 +74,7 @@ final class WelcomeViewController: UIViewController {
         button.backgroundColor = Constants.colorPrimary
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 12
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: Constants.fontButtonSize, weight: .semibold)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(handleCreateAccount), for: .touchUpInside)
         return button
@@ -97,7 +97,7 @@ final class WelcomeViewController: UIViewController {
     
     @objc private func handleCreateAccount() {
         let authVC = AuthViewController()
-        authVC.modalPresentationStyle = .fullScreen
+        authVC.modalPresentationStyle = .formSheet
         present(authVC, animated: true)
     }
 
@@ -113,17 +113,17 @@ final class WelcomeViewController: UIViewController {
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             stackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 40),
-            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
-            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.paddingLarge),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Constants.paddingLarge),
 
-            helperTextLabel.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 48),
-            helperTextLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
-            helperTextLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
+            helperTextLabel.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: Constants.paddingLarge),
+            helperTextLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.paddingLarge),
+            helperTextLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Constants.paddingLarge),
 
-            createAccountButton.topAnchor.constraint(equalTo: helperTextLabel.bottomAnchor, constant: 16),
-            createAccountButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
-            createAccountButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
-            createAccountButton.heightAnchor.constraint(equalToConstant: 52),
+            createAccountButton.topAnchor.constraint(equalTo: helperTextLabel.bottomAnchor, constant: Constants.paddingSmall),
+            createAccountButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.paddingLarge),
+            createAccountButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Constants.paddingLarge),
+            createAccountButton.heightAnchor.constraint(equalToConstant: Constants.buttonHeight),
         ])
     }
 }

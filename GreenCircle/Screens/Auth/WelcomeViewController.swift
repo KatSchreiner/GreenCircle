@@ -72,7 +72,7 @@ final class WelcomeViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle("Создать аккаунт", for: .normal)
         button.backgroundColor = Constants.colorPrimary
-        button.setTitleColor(.white, for: .normal)
+        button.setTitleColor(Constants.colorWhite, for: .normal)
         button.layer.cornerRadius = 12
         button.titleLabel?.font = UIFont.systemFont(ofSize: Constants.fontButtonSize, weight: .semibold)
         button.translatesAutoresizingMaskIntoConstraints = false

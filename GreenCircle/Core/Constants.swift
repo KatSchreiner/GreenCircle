@@ -8,6 +8,8 @@ import UIKit
 
 struct Constants {
     static let colorBackground = UIColor(named: "GCBackground")
+    static let colorWhite = UIColor(named: "GCWhite")
+    
     static let colorPrimary = UIColor(named: "GCNavy")
     static let colorSecondary = UIColor(named: "GCGrey")
     static let colorMuthedSecondary = UIColor(named: "GCLightGrey")

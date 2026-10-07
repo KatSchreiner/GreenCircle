@@ -7,11 +7,27 @@
 import UIKit
 
 final class AuthViewController: UIViewController {
-    
     let viewModel = AuthViewModel()
     
+    private var isRequestCodeButtonEnabled: Bool = false {
+        didSet {
+            requestCodeButton.isEnabled = isRequestCodeButtonEnabled
+            
+            let isActive = isRequestCodeButtonEnabled
+            
+            if isActive {
+                requestCodeButton.backgroundColor = Constants.colorPrimary
+                requestCodeButton.setTitleColor(Constants.colorWhite, for: .normal)
+            } else {
+                requestCodeButton.backgroundColor = Constants.colorPrimary?.withAlphaComponent(0.4)
+                
+                requestCodeButton.setTitleColor(Constants.colorWhite?.withAlphaComponent(0.4), for: .normal)
+            }
+        }
+    }
+    
     private lazy var mainStack: UIStackView = {
-        let stackView = UIStackView(arrangedSubviews: [phoneTitleLabel, phoneSubtitleLabel,  phoneTextField, requestCodeButton, errorLabel, codeInputContainer])
+        let stackView = UIStackView(arrangedSubviews: [phoneTitleLabel, phoneSubtitleLabel,  phoneTextField, requestCodeButton, codeInputContainer])
         stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.axis = .vertical
         stackView.spacing = Constants.paddingSmall
@@ -70,23 +86,13 @@ final class AuthViewController: UIViewController {
     }()
 
     private lazy var requestCodeButton: UIButton = {
-        let button = UIButton(type: .system)
+        let button = UIButton(type: .custom)
         button.setTitle("Получить код", for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: Constants.fontButtonSize)
-        button.setTitleColor(Constants.colorSecondary, for: .normal)
-        button.backgroundColor = Constants.colorAccent
         button.layer.cornerRadius = Constants.defaultRadius
         button.addTarget(self, action: #selector(didTapRequestCode), for: .touchUpInside)
+        button.isEnabled = false
         return button
-    }()
-    
-    private lazy var errorLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = Constants.colorError
-        label.font = UIFont.systemFont(ofSize: Constants.fontCaptionSize)
-        label.numberOfLines = 0
-        label.isHidden = true
-        return label
     }()
     
     private lazy var codeInputContainer: UIView = {
@@ -115,7 +121,10 @@ final class AuthViewController: UIViewController {
     }
     
     @objc private func didTapRequestCode() {
-        
+        guard let text = phoneTextField.text else { return }
+        let digits = viewModel.extractPhoneDigits(from: text)
+
+        print("Запрос кода для номера: \(digits)")
     }
     
     @objc private func didTapFamilyCode() {
@@ -124,7 +133,8 @@ final class AuthViewController: UIViewController {
     
     private func setupView() {
         view.backgroundColor = Constants.colorBackground
-        
+        isRequestCodeButtonEnabled = viewModel.canRequestCode
+
         [mainStack, familyCodeButton]
             .forEach {
                 view.addSubview($0)
@@ -152,23 +162,6 @@ final class AuthViewController: UIViewController {
         
         mainStack.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, constant: -Constants.paddingLarge)
     }
-    
-    private func cursorOffset(afterDigitCount n: Int, in text: String) -> Int {
-        let prefixLength = 3 
-        guard n > 0 else { return min(prefixLength, text.count) }
-        
-        var digitCount = 0
-        for (offset, char) in text.enumerated() {
-            if offset < prefixLength { continue }
-            if char.isNumber {
-                digitCount += 1
-                if digitCount == n {
-                    return offset + 1
-                }
-            }
-        }
-        return text.count
-    }
 }
 
 extension AuthViewController: UITextFieldDelegate {
@@ -191,14 +184,12 @@ extension AuthViewController: UITextFieldDelegate {
         }
         
         viewModel.validatePhoneNumber(bodyDigits)
-        requestCodeButton.isEnabled = viewModel.canRequestCode
-        errorLabel.text = viewModel.errorMessage
-        errorLabel.isHidden = viewModel.errorMessage == nil || viewModel.errorMessage?.isEmpty == true
+        isRequestCodeButtonEnabled = viewModel.canRequestCode
 
         let newText = viewModel.formatPhoneNumber(bodyDigits)
         textField.text = newText
 
-        let offset = cursorOffset(afterDigitCount: bodyDigits.count, in: newText)
+        let offset = viewModel.cursorOffset(forDigitCount: bodyDigits.count, in: newText)
         if let position = textField.position(from: textField.beginningOfDocument, offset: offset) {
             textField.selectedTextRange = textField.textRange(from: position, to: position)
         }
@@ -210,9 +201,7 @@ extension AuthViewController: UITextFieldDelegate {
         guard textField === phoneTextField else { return true }
         
         viewModel.validatePhoneNumber("")
-        requestCodeButton.isEnabled = viewModel.canRequestCode
-        errorLabel.text = viewModel.errorMessage
-        errorLabel.isHidden = viewModel.errorMessage == nil || viewModel.errorMessage?.isEmpty == true
+        isRequestCodeButtonEnabled = viewModel.canRequestCode
         
         let newText = viewModel.formatPhoneNumber("")
         phoneTextField.text = newText
@@ -231,7 +220,7 @@ extension AuthViewController: UITextFieldDelegate {
         
         let text = textField.text ?? ""
         let digits = viewModel.extractPhoneDigits(from: text)
-        let target = cursorOffset(afterDigitCount: digits.count, in: text)
+        let target = viewModel.cursorOffset(forDigitCount: digits.count, in: text)
         
         guard let position = textField.position(from: textField.beginningOfDocument, offset: target) else { return }
         let desiredRange = textField.textRange(from: position, to: position)

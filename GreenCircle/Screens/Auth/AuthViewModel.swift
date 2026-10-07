@@ -42,10 +42,22 @@ final class AuthViewModel {
     
     func validatePhoneNumber(_ digits: String) {
         canRequestCode = digits.count == 10
-        errorMessage = canRequestCode ? nil : "Введите корректный номер"
     }
     
-    func setErrorMessage(_ message: String) {
-        errorMessage = message
+    func cursorOffset(forDigitCount n: Int, in text: String) -> Int {
+        let prefixLength = 3 
+        guard n > 0 else { return min(prefixLength, text.count) }
+        
+        var digitCount = 0
+        for (offset, char) in text.enumerated() {
+            if offset < prefixLength { continue }
+            if char.isNumber {
+                digitCount += 1
+                if digitCount == n {
+                    return offset + 1
+                }
+            }
+        }
+        return text.count
     }
 }

@@ -12,6 +12,7 @@ struct Constants {
     static let colorSecondary = UIColor(named: "GCGrey")
     static let colorMuthedSecondary = UIColor(named: "GCLightGrey")
     static let colorAccent = UIColor(named: "GCAliceBlue")
+    static let colorError = UIColor(named: "GCRed")
     
     static let fontTitleSize: CGFloat = 25
     static let fontTitleWeight: UIFont.Weight = .bold

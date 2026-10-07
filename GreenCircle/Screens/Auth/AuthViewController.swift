@@ -8,6 +8,8 @@ import UIKit
 
 final class AuthViewController: UIViewController {
     
+    let viewModel = AuthViewModel()
+    
     private lazy var mainStack: UIStackView = {
         let stackView = UIStackView(arrangedSubviews: [phoneTitleLabel, phoneSubtitleLabel,  phoneTextField, requestCodeButton, errorLabel, codeInputContainer])
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -40,8 +42,8 @@ final class AuthViewController: UIViewController {
     
     private lazy var phoneTextField: UITextField = {
         let textField = UITextField()
-        textField.text = "+7  "
         textField.placeholder = nil
+        textField.text = viewModel.formatPhoneNumber("")
         textField.keyboardType = .phonePad
         textField.autocapitalizationType = .none
         textField.textColor = Constants.colorSecondary
@@ -49,31 +51,29 @@ final class AuthViewController: UIViewController {
         textField.backgroundColor = .white
         textField.contentVerticalAlignment = .center
         
+        textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 15, height: textField.frame.height))
+        textField.leftViewMode = .always
+        
         textField.layer.cornerRadius = Constants.defaultRadius
         textField.layer.borderWidth = 1
         textField.layer.borderColor = UIColor(red: 0.867, green: 0.886, blue: 0.925, alpha: 1.0).cgColor
         
-        let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 24, height: 60))
-        textField.leftView = paddingView
-        textField.rightView = paddingView 
-        textField.leftViewMode = .always
-        textField.rightViewMode = .always
-        
-        textField.textContentType = .telephoneNumber   
+        textField.textContentType = .telephoneNumber
         textField.autocorrectionType = .no
         textField.spellCheckingType = .no
         textField.smartInsertDeleteType = .no
         textField.delegate = self
         
+        textField.clearButtonMode = .whileEditing
+        
         return textField
     }()
-    
+
     private lazy var requestCodeButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Получить код", for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: Constants.fontButtonSize)
         button.setTitleColor(Constants.colorSecondary, for: .normal)
-        button.isEnabled = false
         button.backgroundColor = Constants.colorAccent
         button.layer.cornerRadius = Constants.defaultRadius
         button.addTarget(self, action: #selector(didTapRequestCode), for: .touchUpInside)
@@ -82,8 +82,8 @@ final class AuthViewController: UIViewController {
     
     private lazy var errorLabel: UILabel = {
         let label = UILabel()
-        label.textColor = .systemRed
-        label.font = UIFont.systemFont(ofSize: 14)
+        label.textColor = Constants.colorError
+        label.font = UIFont.systemFont(ofSize: Constants.fontCaptionSize)
         label.numberOfLines = 0
         label.isHidden = true
         return label
@@ -152,19 +152,37 @@ final class AuthViewController: UIViewController {
         
         mainStack.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, constant: -Constants.paddingLarge)
     }
+    
+    private func cursorOffset(afterDigitCount n: Int, in text: String) -> Int {
+        let prefixLength = 3 
+        guard n > 0 else { return min(prefixLength, text.count) }
+        
+        var digitCount = 0
+        for (offset, char) in text.enumerated() {
+            if offset < prefixLength { continue }
+            if char.isNumber {
+                digitCount += 1
+                if digitCount == n {
+                    return offset + 1
+                }
+            }
+        }
+        return text.count
+    }
 }
 
 extension AuthViewController: UITextFieldDelegate {
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         guard textField === phoneTextField else { return true }
-        
         guard string.isEmpty || string.allSatisfy({ $0.isNumber }) else { return false }
-        
+
         let current = textField.text ?? ""
-        var bodyDigits = phoneDigits(from: current)
+        var bodyDigits = viewModel.extractPhoneDigits(from: current)
         
         if string.isEmpty {
-            if !bodyDigits.isEmpty { bodyDigits.removeLast() }
+            if !bodyDigits.isEmpty {
+                bodyDigits.removeLast()
+            }
         } else {
             bodyDigits += string.filter { $0.isNumber }
             if bodyDigits.count > 10 {
@@ -172,38 +190,54 @@ extension AuthViewController: UITextFieldDelegate {
             }
         }
         
-        let newText = formatPhoneNumber(bodyDigits)
+        viewModel.validatePhoneNumber(bodyDigits)
+        requestCodeButton.isEnabled = viewModel.canRequestCode
+        errorLabel.text = viewModel.errorMessage
+        errorLabel.isHidden = viewModel.errorMessage == nil || viewModel.errorMessage?.isEmpty == true
+
+        let newText = viewModel.formatPhoneNumber(bodyDigits)
+        textField.text = newText
+
+        let offset = cursorOffset(afterDigitCount: bodyDigits.count, in: newText)
+        if let position = textField.position(from: textField.beginningOfDocument, offset: offset) {
+            textField.selectedTextRange = textField.textRange(from: position, to: position)
+        }
+        return false
+    }
+
+    
+    func textFieldShouldClear(_ textField: UITextField) -> Bool {
+        guard textField === phoneTextField else { return true }
         
-        if newText == textField.text {
-            return false
+        viewModel.validatePhoneNumber("")
+        requestCodeButton.isEnabled = viewModel.canRequestCode
+        errorLabel.text = viewModel.errorMessage
+        errorLabel.isHidden = viewModel.errorMessage == nil || viewModel.errorMessage?.isEmpty == true
+        
+        let newText = viewModel.formatPhoneNumber("")
+        phoneTextField.text = newText
+        
+        let targetOffset = 3
+        if let position = phoneTextField.position(from: phoneTextField.beginningOfDocument, offset: targetOffset) {
+            let desiredRange = phoneTextField.textRange(from: position, to: position)
+            phoneTextField.selectedTextRange = desiredRange
         }
         
-        textField.text = newText
         return false
     }
     
-    private func phoneDigits(from text: String) -> String {
-        let prefix = "+7"
-        let body = text.hasPrefix(prefix) ? String(text.dropFirst(prefix.count)) : text
-        return body.filter { $0.isNumber }
-    }
-    
-    private func formatPhoneNumber(_ digits: String) -> String {
-        guard !digits.isEmpty else { return "+7" }
+    func textFieldDidChangeSelection(_ textField: UITextField) {
+        guard textField === phoneTextField else { return }
         
-        let mask = "+7 (XXX) XXX-XX-XX"
-        var result = ""
-        var index = digits.startIndex
+        let text = textField.text ?? ""
+        let digits = viewModel.extractPhoneDigits(from: text)
+        let target = cursorOffset(afterDigitCount: digits.count, in: text)
         
-        for char in mask {
-            guard index < digits.endIndex else { break }
-            if char == "X" {
-                result.append(digits[index])
-                index = digits.index(after: index)
-            } else {
-                result.append(char)
-            }
+        guard let position = textField.position(from: textField.beginningOfDocument, offset: target) else { return }
+        let desiredRange = textField.textRange(from: position, to: position)
+        
+        if textField.selectedTextRange != desiredRange {
+            textField.selectedTextRange = desiredRange
         }
-        return result
     }
 }

@@ -6,9 +6,19 @@
 //
 import UIKit
 
+protocol AuthServiceProtocol {
+    func requestCode(for phoneDigits: String, completion: @escaping (Result<Void, Error>) -> Void)
+}
+
 final class AuthViewModel {
     private(set) var canRequestCode = false
     private(set) var errorMessage: String?
+    
+    private let authService: AuthServiceProtocol
+    
+    init(authService: AuthServiceProtocol = MockAuthService()) {
+        self.authService = authService
+    }
     
     func extractPhoneDigits(from text: String) -> String {
         let prefix = "+7"
@@ -59,5 +69,32 @@ final class AuthViewModel {
             }
         }
         return text.count
+    }
+    
+    func startRequestCode(for digits: String, completion: @escaping (Bool) -> Void) {
+        authService.requestCode(for: digits) { result in
+            var success = false
+            var msg: String?
+            
+            switch result {
+            case .success:
+                success = true
+            case .failure(let error):
+                if let authError = error as? AuthError {
+                    switch authError {
+                    case .invalidPhone: msg = "Некорректный номер"
+                    case .network: msg = "Ошибка сети"
+                    }
+                } else {
+                    msg = "Произошла ошибка"
+                }
+                self.errorMessage = msg
+                success = false
+            }
+            
+            DispatchQueue.main.async {
+                completion(success)
+            }
+        }
     }
 }

@@ -8,6 +8,7 @@ import UIKit
 
 protocol AuthServiceProtocol {
     func requestCode(for phoneDigits: String, completion: @escaping (Result<Void, Error>) -> Void)
+    func submitCode(for phoneDigits: String, code: String, completion: @escaping (Result<User, Error>) -> Void)
 }
 
 final class AuthViewModel {
@@ -55,7 +56,7 @@ final class AuthViewModel {
     }
     
     func cursorOffset(forDigitCount n: Int, in text: String) -> Int {
-        let prefixLength = 3 
+        let prefixLength = 3
         guard n > 0 else { return min(prefixLength, text.count) }
         
         var digitCount = 0
@@ -74,7 +75,7 @@ final class AuthViewModel {
     func startRequestCode(for digits: String, completion: @escaping (Bool) -> Void) {
         authService.requestCode(for: digits) { result in
             var success = false
-            var msg: String?
+            var message: String?
             
             switch result {
             case .success:
@@ -82,18 +83,27 @@ final class AuthViewModel {
             case .failure(let error):
                 if let authError = error as? AuthError {
                     switch authError {
-                    case .invalidPhone: msg = "Некорректный номер"
-                    case .network: msg = "Ошибка сети"
+                    case .invalidPhone: message = "Некорректный номер"
+                    case .network: message = "Ошибка сети"
+                    default: message = "Произошла ошибка"
                     }
                 } else {
-                    msg = "Произошла ошибка"
+                    message = "Произошла ошибка"
                 }
-                self.errorMessage = msg
+                self.errorMessage = message
                 success = false
             }
             
             DispatchQueue.main.async {
                 completion(success)
+            }
+        }
+    }
+    
+    func submitCode(for phoneDigits: String, code: String, completion: @escaping (Result<User, Error>) -> Void) {
+        authService.submitCode(for: phoneDigits, code: code) { result in
+            DispatchQueue.main.async {
+                completion(result)
             }
         }
     }

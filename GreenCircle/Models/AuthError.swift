@@ -8,5 +8,7 @@ import Foundation
 
 enum AuthError: Error {
     case invalidPhone
+    case invalidCode
     case network
+    case unknown
 }

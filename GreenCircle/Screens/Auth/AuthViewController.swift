@@ -26,11 +26,6 @@ final class AuthViewController: UIViewController {
     
     private var currentStep: AuthStep = .enterPhone
     
-    enum AuthStep {
-        case enterPhone
-        case enterCode
-    }
-    
     private lazy var mainStack: UIStackView = {
         let stackView = UIStackView(arrangedSubviews: [phoneTitleLabel, phoneSubtitleLabel, phoneTextField, codeInputContainer, requestCodeButton])
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -241,8 +236,48 @@ final class AuthViewController: UIViewController {
     
     private func handleSubmitCode() {
         guard let code = codeTextField.text, !code.isEmpty else { return }
+        
+        let phoneText = phoneTextField.text ?? ""
+        let digits = viewModel.extractPhoneDigits(from: phoneText)
+        
+        guard !digits.isEmpty else {
+            showError("Введите номер телефона")
+            return
+        }
+        
         print("[Auth] Отправлен код: \(code)")
-        // TODO: вызвать viewModel.submitCode(...) и обработать результат
+        
+        requestCodeButton.isEnabled = false
+        
+        viewModel.submitCode(for: digits, code: code) { [weak self] result in
+            guard let self = self else { return }
+            self.requestCodeButton.isEnabled = true
+            
+            switch result {
+            case .success(let user):
+                print("[Auth] Успешный вход, пользователь: \(user)")
+                self.showMapScreen(for: user)
+                
+            case .failure(let error):
+                var message: String
+                if let authError = error as? AuthError {
+                    switch authError {
+                    case .invalidCode: message = "Неверный код"
+                    case .network: message = "Ошибка сети"
+                    default: message = "Произошла ошибка"
+                    }
+                } else {
+                    message = "Произошла ошибка"
+                }
+                self.showError(message)
+            }
+        }
+    }
+    
+    private func showMapScreen(for user: User) {
+        let mapVC = MapViewController()
+        mapVC.user = user 
+        navigationController?.pushViewController(mapVC, animated: true)
     }
     
     private func showError(_ message: String) {

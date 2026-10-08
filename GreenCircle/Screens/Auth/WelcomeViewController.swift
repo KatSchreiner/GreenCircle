@@ -97,8 +97,7 @@ final class WelcomeViewController: UIViewController {
     
     @objc private func handleCreateAccount() {
         let authVC = AuthViewController()
-        authVC.modalPresentationStyle = .formSheet
-        present(authVC, animated: true)
+        navigationController?.pushViewController(authVC, animated: true)
     }
 
     private func setupView() {

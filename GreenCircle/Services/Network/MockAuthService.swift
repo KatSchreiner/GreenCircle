@@ -18,4 +18,15 @@ final class MockAuthService: AuthServiceProtocol {
             }
         }
     }
+    
+    func submitCode(for phoneDigits: String, code: String, completion: @escaping (Result<User, Error>) -> Void) {
+        DispatchQueue.global().asyncAfter(deadline: .now() + 1.0) {
+            if code == "0000" {
+                completion(.failure(AuthError.invalidPhone))
+            } else {
+                let user = User(id: "user-\(phoneDigits)", phone: "+7\(phoneDigits)")
+                completion(.success(user))
+            }
+        }
+    }
 }

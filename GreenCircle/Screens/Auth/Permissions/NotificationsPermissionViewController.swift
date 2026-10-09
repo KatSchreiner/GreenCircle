@@ -18,7 +18,7 @@ final class NotificationsPermissionViewController: UIViewController {
         stack.axis = .vertical
         stack.spacing = Constants.paddingLarge
         stack.distribution = .fill
-        stack.alignment = .center
+        stack.alignment = .fill
         return stack
     }()
     

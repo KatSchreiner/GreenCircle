@@ -7,7 +7,7 @@
 import UIKit
 import CoreLocation
 
-final class PermissionsViewController: UIViewController {
+final class LocationRequestViewController: UIViewController {
     private let user: User
     private let permissionService = LocationPermissionService()
     
@@ -17,7 +17,7 @@ final class PermissionsViewController: UIViewController {
         stack.axis = .vertical
         stack.spacing = Constants.paddingLarge
         stack.distribution = .fill
-        stack.alignment = .center
+        stack.alignment = .fill
         return stack
     }()
     

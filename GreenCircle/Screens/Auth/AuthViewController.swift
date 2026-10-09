@@ -275,7 +275,7 @@ final class AuthViewController: UIViewController {
     }
     
     private func showPermissionsScreen(for user: User) {
-        let vc = PermissionsViewController(user: user)
+        let vc = PermissionsIntroViewController(user: user)
         navigationController?.pushViewController(vc, animated: true)
     }
     

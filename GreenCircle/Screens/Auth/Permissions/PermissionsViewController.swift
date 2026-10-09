@@ -111,7 +111,7 @@ final class PermissionsViewController: UIViewController {
         
         let currentStatus = permissionService.checkStatus()
         if currentStatus == .authorizedWhenInUse || currentStatus == .authorizedAlways {
-            showMapScreen()
+            showNotificationsScreen()
             return
         }
     }
@@ -172,7 +172,7 @@ final class PermissionsViewController: UIViewController {
     private func checkAndHandleExistingPermission() {
         let currentStatus = permissionService.checkStatus()
         if currentStatus == .authorizedWhenInUse || currentStatus == .authorizedAlways {
-            showMapScreen()
+            showNotificationsScreen()
         }
     }
     
@@ -180,16 +180,15 @@ final class PermissionsViewController: UIViewController {
         enableButtons()
         
         if success {
-            showMapScreen()
+            showNotificationsScreen()
         } else {
             showDenyAlert()
         }
     }
     
-    private func showMapScreen() {
-        let mapViewController = MapViewController()
-        mapViewController.user = user
-        navigationController?.pushViewController(mapViewController, animated: true)
+    private func showNotificationsScreen() {
+        let notificationsVC = NotificationsPermissionViewController(user: user)
+        navigationController?.pushViewController(notificationsVC, animated: true)
     }
     
     private func showDenyAlert() {

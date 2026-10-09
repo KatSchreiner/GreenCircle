@@ -21,7 +21,16 @@
 	</dict>
 	<key>UIBackgroundModes</key>
 	<array>
-		<string>location</string>
-	</array>
+        <string>location</string>
+    </array>
+    
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Чтобы показывать местоположение близких на карте, пока приложение открыто.</string>
+    
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Чтобы отслеживать вход и выход из геозон (дом, школа) и присылать уведомления, даже когда приложение не открыто.</string>
+    
+    <key>NSUserNotificationUsageDescription</key>
+    <string>Чтобы присылать уведомления о входе и выходе из геозон (например, ребёнок пришёл домой).</string>
 </dict>
 </plist>

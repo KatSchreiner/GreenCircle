@@ -256,7 +256,7 @@ final class AuthViewController: UIViewController {
             switch result {
             case .success(let user):
                 print("[Auth] Успешный вход, пользователь: \(user)")
-                self.showMapScreen(for: user)
+                self.showPermissionsScreen(for: user)
                 
             case .failure(let error):
                 var message: String
@@ -274,10 +274,9 @@ final class AuthViewController: UIViewController {
         }
     }
     
-    private func showMapScreen(for user: User) {
-        let mapVC = MapViewController()
-        mapVC.user = user 
-        navigationController?.pushViewController(mapVC, animated: true)
+    private func showPermissionsScreen(for user: User) {
+        let vc = PermissionsViewController(user: user)
+        navigationController?.pushViewController(vc, animated: true)
     }
     
     private func showError(_ message: String) {
@@ -289,7 +288,6 @@ final class AuthViewController: UIViewController {
 
 extension AuthViewController: UITextFieldDelegate {
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        // Логика для phoneTextField (маска телефона)
         if textField === phoneTextField {
             guard string.isEmpty || string.allSatisfy({ $0.isNumber }) else { return false }
             

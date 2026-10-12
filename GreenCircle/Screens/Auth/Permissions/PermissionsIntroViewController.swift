@@ -22,6 +22,7 @@ final class PermissionsIntroViewController: UIViewController {
     private lazy var iconView: UIImageView = {
         let img = UIImage(systemName: "location.circle.fill")?.withTintColor(Constants.colorPrimary ?? .gcNavy, renderingMode: .alwaysOriginal)
         let view = UIImageView(image: img)
+        view.tintColor = Constants.colorAccent
         view.contentMode = .scaleAspectFit
         view.heightAnchor.constraint(equalToConstant: 120).isActive = true
         return view
@@ -71,20 +72,30 @@ final class PermissionsIntroViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupView()
+    }
+    
+    @objc private func didTapContinue() {
+        let permissionsVC = LocationRequestViewController(user: user)
+        navigationController?.pushViewController(permissionsVC, animated: true)
+    }
+    
+    private func setupView() {
         view.backgroundColor = Constants.colorBackground
         view.addSubview(mainStack)
         
+        navigationItem.hidesBackButton = true
+        
+        setupConstraints()
+    }
+    
+    private func setupConstraints() {
         NSLayoutConstraint.activate([
             mainStack.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             mainStack.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -Constants.paddingLarge),
             mainStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.paddingLarge),
             mainStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Constants.paddingLarge)
         ])
-    }
-    
-    @objc private func didTapContinue() {
-        let permissionsVC = LocationRequestViewController(user: user)
-        navigationController?.pushViewController(permissionsVC, animated: true)
     }
 }
 

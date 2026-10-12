@@ -25,6 +25,7 @@ final class NotificationsPermissionViewController: UIViewController {
     private lazy var iconView: UIImageView = {
         let img = UIImage(systemName: "bell.fill")?.withTintColor(Constants.colorPrimary ?? .gcNavy, renderingMode: .alwaysOriginal)
         let view = UIImageView(image: img)
+        view.tintColor = Constants.colorAccent
         view.contentMode = .scaleAspectFit
         view.heightAnchor.constraint(equalToConstant: 80).isActive = true
         return view
@@ -114,6 +115,7 @@ final class NotificationsPermissionViewController: UIViewController {
     private func setupView() {
         view.backgroundColor = Constants.colorBackground
         view.addSubview(mainStack)
+        navigationItem.hidesBackButton = true
         
         setupConstraints()
     }

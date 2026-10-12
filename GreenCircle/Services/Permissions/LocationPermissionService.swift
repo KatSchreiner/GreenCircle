@@ -9,7 +9,15 @@ import CoreLocation
 final class LocationPermissionService: NSObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
     private var completion: ((Bool) -> Void)?
-
+    
+    override init() {
+        super.init()
+        locationManager.delegate = self
+        locationManager.allowsBackgroundLocationUpdates = true
+        locationManager.pausesLocationUpdatesAutomatically = false
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+    }
+    
     func checkStatus() -> LocationPermissionStatus {
         switch CLLocationManager.authorizationStatus() {
         case .notDetermined: return .notDetermined
@@ -20,27 +28,26 @@ final class LocationPermissionService: NSObject, CLLocationManagerDelegate {
         @unknown default: return .notDetermined
         }
     }
-
+    
     func requestWhenInUse(completion: @escaping (Bool) -> Void) {
         self.completion = completion
-        locationManager.delegate = self
-        locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.requestWhenInUseAuthorization()
     }
 
     func requestAlways(completion: @escaping (Bool) -> Void) {
         self.completion = completion
-        locationManager.delegate = self
-        locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        locationManager.allowsBackgroundLocationUpdates = true
-        locationManager.pausesLocationUpdatesAutomatically = false
         locationManager.requestAlwaysAuthorization()
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        guard let completion = self.completion else {
+            return
+        }
+
         let status = checkStatus()
         let granted = status == .authorizedWhenInUse || status == .authorizedAlways
-        completion?(granted)
-        completion = nil
+
+        completion(granted)
+        self.completion = nil
     }
 }

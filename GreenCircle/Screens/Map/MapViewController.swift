@@ -16,7 +16,8 @@ final class MapViewController: UIViewController {
     
     private func setupView() {
         view.backgroundColor = Constants.colorBackground
-
+        navigationItem.hidesBackButton = true
+        
         setupConstraints()
     }
     

@@ -12,7 +12,7 @@ final class LocationRequestViewController: UIViewController {
     private let permissionService = LocationPermissionService()
     
     private lazy var mainStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [iconView, titleLabel, subtitleLabel, actionStack, bottomNote])
+        let stack = UIStackView(arrangedSubviews: [iconView, titleLabel, subtitleLabel, actionStack, tipsLabel, bottomNote])
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .vertical
         stack.spacing = Constants.paddingLarge
@@ -22,7 +22,7 @@ final class LocationRequestViewController: UIViewController {
     }()
     
     private lazy var iconView: UIImageView = {
-        let img = UIImage(systemName: "location.fill")?.withTintColor(Constants.colorPrimary ?? .gcNavy, renderingMode: .alwaysOriginal)
+        let img = UIImage(systemName: "location.fill")?.withTintColor(Constants.colorAccent ?? .gcAliceBlue, renderingMode: .alwaysOriginal)
         let view = UIImageView(image: img)
         view.contentMode = .scaleAspectFit
         view.heightAnchor.constraint(equalToConstant: 80).isActive = true
@@ -31,7 +31,7 @@ final class LocationRequestViewController: UIViewController {
     
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "Доступ к геолокации"
+        label.text = "Доступ к местоположению"
         label.font = UIFont.systemFont(ofSize: Constants.fontTitleSize, weight: .bold)
         label.textColor = Constants.colorPrimary
         label.textAlignment = .center
@@ -41,11 +41,22 @@ final class LocationRequestViewController: UIViewController {
     
     private lazy var subtitleLabel: UILabel = {
         let label = UILabel()
-        label.text = "Чтобы видеть, где сейчас находятся ваши близкие, и получать уведомления, когда кто-то из круга приходит домой или уходит из школы, приложение запрашивает доступ к геолокации."
+        label.text = "Приложение запрашивает доступ к геолокации, чтобы видеть, где сейчас близкие, и получать уведомления, когда кто‑то из круга приходит в безопасную зону (дома, школа, работа) или выходит из нее."
         label.font = UIFont.systemFont(ofSize: Constants.fontCaptionSize)
         label.textColor = Constants.colorSecondary
         label.textAlignment = .center
         label.numberOfLines = 5
+        label.lineBreakMode = .byWordWrapping
+        return label
+    }()
+    
+    private lazy var tipsLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Для постоянного отслеживания маршрута (например, если нужно видеть движение в реальном времени) лучше выбрать «Разрешить всегда». Для уведомлений о входе/выходе из зон достаточно режима «Только при использовании»."
+        label.font = UIFont.systemFont(ofSize: Constants.fontCaptionSize - 2, weight: .medium)
+        label.textColor = Constants.colorSecondary
+        label.textAlignment = .center
+        label.numberOfLines = 0
         label.lineBreakMode = .byWordWrapping
         return label
     }()
@@ -142,6 +153,7 @@ final class LocationRequestViewController: UIViewController {
     private func setupView() {
         view.backgroundColor = Constants.colorBackground
         view.addSubview(mainStack)
+        navigationItem.hidesBackButton = true
         
         setupConstraint()
     }

@@ -76,6 +76,12 @@ final class PermissionsIntroViewController: UIViewController {
         checkAndHandlePermissions()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        UserDefaults.standard.set(true, forKey: "has_shown_permissions_screen")
+    }
+    
     @objc private func didTapContinue() {
         let permissionsVC = LocationRequestViewController(user: user)
         navigationController?.pushViewController(permissionsVC, animated: true)
@@ -99,7 +105,6 @@ final class PermissionsIntroViewController: UIViewController {
         ])
     }
     
-
     private func checkAndHandlePermissions() {
         var locationStatus: LocationPermissionStatus?
         var notificationStatus: UNAuthorizationStatus?
@@ -120,18 +125,22 @@ final class PermissionsIntroViewController: UIViewController {
 
         group.notify(queue: .main) { [weak self] in
             guard let self = self else { return }
-            
+
             let isLocationGranted = (locationStatus?.isAuthorized ?? false)
-            
             let isNotificationGranted = (notificationStatus == .authorized)
 
+            let hasShownPermissionsScreen = UserDefaults.standard.bool(forKey: "has_shown_permissions_screen")
+
             if isLocationGranted && isNotificationGranted {
+                self.showMapScreen()
+            } else if hasShownPermissionsScreen {
                 self.showMapScreen()
             } else {
                 self.setupView()
             }
         }
     }
+
     
     private func showMapScreen() {
         let mapViewController = MapViewController()

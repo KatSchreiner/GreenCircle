@@ -191,7 +191,10 @@ final class LocationRequestViewController: UIViewController {
         if success {
             showNotificationsScreen()
         } else {
-            showDenyAlert()
+            showDenyAlert { [weak self] in
+                guard let self = self else { return }
+                self.showNotificationsScreen()
+            }
         }
     }
     
@@ -200,18 +203,28 @@ final class LocationRequestViewController: UIViewController {
         navigationController?.pushViewController(notificationsVC, animated: true)
     }
     
-    private func showDenyAlert() {
+    private func showDenyAlert(onLater: @escaping () -> Void) {
         let alert = UIAlertController(
             title: "Доступ запрещён",
-            message: "Без геолокации приложение не сможет показывать местоположение ребёнка и присылать уведомления. Вы можете изменить это в настройках.",
+            message: "Без геолокации приложение не сможет показывать местоположение ваших близких и присылать уведомления. Вы можете изменить это в настройках.",
             preferredStyle: .alert
         )
+        
         alert.addAction(UIAlertAction(title: "Открыть настройки", style: .default) { _ in
-            if let url = URL(string: UIApplication.openSettingsURLString) {
-                UIApplication.shared.open(url)
+            guard let bundleID = Bundle.main.bundleIdentifier else { return }
+            let settingsURL = URL(string: "prefs:root=\(bundleID)")!
+
+            if UIApplication.shared.canOpenURL(settingsURL) {
+                UIApplication.shared.open(settingsURL, options: [:], completionHandler: nil)
+            } else {
+                let fallbackURL = URL(string: UIApplication.openSettingsURLString)!
+                UIApplication.shared.open(fallbackURL, options: [:], completionHandler: nil)
             }
         })
-        alert.addAction(UIAlertAction(title: "Позже", style: .cancel))
+        
+        alert.addAction(UIAlertAction(title: "Позже", style: .cancel) { _ in
+            onLater()
+        })
         present(alert, animated: true)
     }
 }

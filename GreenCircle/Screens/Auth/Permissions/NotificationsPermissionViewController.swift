@@ -23,9 +23,8 @@ final class NotificationsPermissionViewController: UIViewController {
     }()
     
     private lazy var iconView: UIImageView = {
-        let img = UIImage(systemName: "bell.fill")?.withTintColor(Constants.colorPrimary ?? .gcNavy, renderingMode: .alwaysOriginal)
+        let img = UIImage(systemName: "bell.fill")?.withTintColor(Constants.colorAccent ?? .gcNavy, renderingMode: .alwaysOriginal)
         let view = UIImageView(image: img)
-        view.tintColor = Constants.colorAccent
         view.contentMode = .scaleAspectFit
         view.heightAnchor.constraint(equalToConstant: 80).isActive = true
         return view
@@ -140,9 +139,23 @@ final class NotificationsPermissionViewController: UIViewController {
             message: "Вы не будете получать уведомления о входе/выходе из геозон. Это можно изменить в настройках iOS.",
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "Понятно", style: .cancel))
-        present(alert, animated: true) {
+        
+        alert.addAction(UIAlertAction(title: "Открыть настройки", style: .default) { _ in
+            guard let bundleID = Bundle.main.bundleIdentifier else { return }
+            let settingsURL = URL(string: "prefs:root=\(bundleID)")!
+            
+            if UIApplication.shared.canOpenURL(settingsURL) {
+                UIApplication.shared.open(settingsURL, options: [:], completionHandler: nil)
+            } else {
+                let fallbackURL = URL(string: UIApplication.openSettingsURLString)!
+                UIApplication.shared.open(fallbackURL, options: [:], completionHandler: nil)
+            }
+        })
+        
+        alert.addAction(UIAlertAction(title: "Понятно", style: .cancel) { _ in
             self.showMapScreen()
-        }
+        })
+        
+        present(alert, animated: true)
     }
 }

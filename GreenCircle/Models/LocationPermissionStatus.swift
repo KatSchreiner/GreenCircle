@@ -11,4 +11,8 @@ enum LocationPermissionStatus {
     case denied
     case authorizedAlways
     case authorizedWhenInUse
+    
+    var isAuthorized: Bool {
+        self == .authorizedAlways || self == .authorizedWhenInUse
+    }
 }

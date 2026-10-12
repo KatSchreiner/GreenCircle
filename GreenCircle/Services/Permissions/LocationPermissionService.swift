@@ -18,14 +18,22 @@ final class LocationPermissionService: NSObject, CLLocationManagerDelegate {
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
     }
     
-    func checkStatus() -> LocationPermissionStatus {
-        switch CLLocationManager.authorizationStatus() {
-        case .notDetermined: return .notDetermined
-        case .authorizedWhenInUse: return .authorizedWhenInUse
-        case .authorizedAlways: return .authorizedAlways
-        case .denied: return .denied
-        case .restricted: return .restricted
-        @unknown default: return .notDetermined
+    func checkStatus(completion: @escaping (LocationPermissionStatus) -> Void) {
+        let raw = locationManager.authorizationStatus
+        
+        switch raw {
+        case .notDetermined:
+            completion(.notDetermined)
+        case .authorizedWhenInUse:
+            completion(.authorizedWhenInUse)
+        case .authorizedAlways:
+            completion(.authorizedAlways)
+        case .denied:
+            completion(.denied)
+        case .restricted:
+            completion(.restricted)
+        @unknown default:
+            completion(.notDetermined)
         }
     }
     
@@ -44,10 +52,9 @@ final class LocationPermissionService: NSObject, CLLocationManagerDelegate {
             return
         }
 
-        let status = checkStatus()
-        let granted = status == .authorizedWhenInUse || status == .authorizedAlways
-
-        completion(granted)
-        self.completion = nil
+        let status = checkStatus { status in
+            let granted = status == .authorizedWhenInUse || status == .authorizedAlways
+            completion(granted)
+        }
     }
 }

@@ -8,6 +8,8 @@ import UIKit
 
 final class PermissionsIntroViewController: UIViewController {
     private let user: User
+    private let locationService = LocationPermissionService()
+        private let notificationService = NotificationPermissionService.shared
     
     private lazy var mainStack: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [iconView, titleLabel, subtitleLabel, continueButton])
@@ -20,9 +22,8 @@ final class PermissionsIntroViewController: UIViewController {
     }()
     
     private lazy var iconView: UIImageView = {
-        let img = UIImage(systemName: "location.circle.fill")?.withTintColor(Constants.colorPrimary ?? .gcNavy, renderingMode: .alwaysOriginal)
+        let img = UIImage(systemName: "location.circle.fill")?.withTintColor(Constants.colorAccent ?? .gcNavy, renderingMode: .alwaysOriginal)
         let view = UIImageView(image: img)
-        view.tintColor = Constants.colorAccent
         view.contentMode = .scaleAspectFit
         view.heightAnchor.constraint(equalToConstant: 120).isActive = true
         return view
@@ -72,7 +73,7 @@ final class PermissionsIntroViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupView()
+        checkAndHandlePermissions()
     }
     
     @objc private func didTapContinue() {
@@ -97,5 +98,44 @@ final class PermissionsIntroViewController: UIViewController {
             mainStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Constants.paddingLarge)
         ])
     }
-}
+    
 
+    private func checkAndHandlePermissions() {
+        var locationStatus: LocationPermissionStatus?
+        var notificationStatus: UNAuthorizationStatus?
+
+        let group = DispatchGroup()
+
+        group.enter()
+        locationService.checkStatus { status in
+            locationStatus = status
+            group.leave()
+        }
+
+        group.enter()
+        notificationService.getStatus { status in
+            notificationStatus = status
+            group.leave()
+        }
+
+        group.notify(queue: .main) { [weak self] in
+            guard let self = self else { return }
+            
+            let isLocationGranted = (locationStatus?.isAuthorized ?? false)
+            
+            let isNotificationGranted = (notificationStatus == .authorized)
+
+            if isLocationGranted && isNotificationGranted {
+                self.showMapScreen()
+            } else {
+                self.setupView()
+            }
+        }
+    }
+    
+    private func showMapScreen() {
+        let mapViewController = MapViewController()
+        mapViewController.user = user
+        self.navigationController?.pushViewController(mapViewController, animated: true)
+    }
+}

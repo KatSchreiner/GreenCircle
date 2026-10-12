@@ -119,12 +119,6 @@ final class LocationRequestViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
-        
-        let currentStatus = permissionService.checkStatus()
-        if currentStatus == .authorizedWhenInUse || currentStatus == .authorizedAlways {
-            showNotificationsScreen()
-            return
-        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -182,9 +176,12 @@ final class LocationRequestViewController: UIViewController {
     }
     
     private func checkAndHandleExistingPermission() {
-        let currentStatus = permissionService.checkStatus()
-        if currentStatus == .authorizedWhenInUse || currentStatus == .authorizedAlways {
-            showNotificationsScreen()
+        permissionService.checkStatus { status in
+            DispatchQueue.main.async {
+                if status.isAuthorized {
+                    self.showNotificationsScreen()
+                }
+            }
         }
     }
     

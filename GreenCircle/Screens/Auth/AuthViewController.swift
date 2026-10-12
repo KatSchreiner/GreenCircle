@@ -12,15 +12,9 @@ final class AuthViewController: UIViewController {
     private var isRequestCodeButtonEnabled: Bool = false {
         didSet {
             requestCodeButton.isEnabled = isRequestCodeButtonEnabled
-            
-            let isActive = isRequestCodeButtonEnabled
-            if isActive {
-                requestCodeButton.backgroundColor = Constants.colorPrimary
-                requestCodeButton.setTitleColor(Constants.colorWhite, for: .normal)
-            } else {
-                requestCodeButton.backgroundColor = Constants.colorPrimary?.withAlphaComponent(0.4)
-                requestCodeButton.setTitleColor(Constants.colorWhite?.withAlphaComponent(0.4), for: .normal)
-            }
+            let alpha = isRequestCodeButtonEnabled ? 1.0 : 0.4
+            requestCodeButton.backgroundColor = Constants.colorPrimary?.withAlphaComponent(alpha)
+            requestCodeButton.setTitleColor(Constants.colorWhite?.withAlphaComponent(alpha), for: .normal)
         }
     }
     
@@ -161,6 +155,7 @@ final class AuthViewController: UIViewController {
             }
         
         codeInputContainer.addSubview(codeTextField)
+        
         NSLayoutConstraint.activate([
             codeTextField.topAnchor.constraint(equalTo: codeInputContainer.topAnchor),
             codeTextField.leadingAnchor.constraint(equalTo: codeInputContainer.leadingAnchor),
@@ -195,13 +190,13 @@ final class AuthViewController: UIViewController {
         
         print("[Auth] Нажата кнопка, digits = \(digits)")
         
-        requestCodeButton.isEnabled = false
+        isRequestCodeButtonEnabled = false
         
         viewModel.startRequestCode(for: digits) { success in
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
                 
-                self.requestCodeButton.isEnabled = true
+                self.isRequestCodeButtonEnabled = true
                 
                 if success {
                     self.switchToCodeStep()
@@ -228,10 +223,6 @@ final class AuthViewController: UIViewController {
         
         let codeText = codeTextField.text ?? ""
         isRequestCodeButtonEnabled = !codeText.isEmpty
-        
-        UIView.animate(withDuration: 0.3) {
-            self.mainStack.layoutIfNeeded()
-        }
     }
     
     private func handleSubmitCode() {
@@ -247,11 +238,11 @@ final class AuthViewController: UIViewController {
         
         print("[Auth] Отправлен код: \(code)")
         
-        requestCodeButton.isEnabled = false
+        isRequestCodeButtonEnabled = false
         
         viewModel.submitCode(for: digits, code: code) { [weak self] result in
             guard let self = self else { return }
-            self.requestCodeButton.isEnabled = true
+            self.isRequestCodeButtonEnabled = true
             
             switch result {
             case .success(let user):
